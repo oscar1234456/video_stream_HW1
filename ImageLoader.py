@@ -57,7 +57,7 @@ class ImageLoader(Dataset):
                 self.config.test_data_transform
             ),
         }
-        img_path = self.root + '/' + self.img_name[index] + '.jpeg'
+        img_path = self.root + self.mode+ "/" +self.img_name[index]
         image = Image.open(img_path).convert('RGB')
         label = self.label[index]
         imageConvert = data_transform[self.mode](image)
@@ -67,11 +67,12 @@ class ImageLoader(Dataset):
 def getData(mode):
     # training / validation
     if mode == "train":
-        train_list = pd.read_csv("/mnt/2ndHDD/oscarchencs10/video_streaming/train.csv", header=None)
+        train_list = pd.read_csv("/mnt/2ndHDD/oscarchencs10/video_streaming/train.csv")
+        print(train_list)
         img = train_list["names"]
         label = train_list["label"]
     else:
-        val_list = pd.read_csv("/mnt/2ndHDD/oscarchencs10/video_streaming/val.csv", header=None)
+        val_list = pd.read_csv("/mnt/2ndHDD/oscarchencs10/video_streaming/val.csv")
         img = val_list["names"]
         label = val_list["label"]
 
