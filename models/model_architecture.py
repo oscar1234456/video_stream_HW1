@@ -76,7 +76,6 @@ class VGGNet_19(nn.Module):
             torch.nn.Linear(in_features=4096, out_features=10)
         )
 
-
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
