@@ -38,11 +38,18 @@ def transform_dict(config_dict: Dict, expand: bool = True):
 
 
 def dfac_dataset_optimizer_args():
+    # SGD
     return {
-        "lr": 0.001,
-        # "momentum": 0.9,
-        # "weight_decay": 5e-4,
+        "lr": 0.0001,
+        "momentum": 0.9,
+        "weight_decay": 5e-4,
     }
+    #Adam
+    # return {
+    #     "lr": 0.0001,
+    #     # "momentum": 0.9,
+    #     # "weight_decay": 0,
+    # }
 
 
 def dfac_lr_scheduler_args():
@@ -81,24 +88,15 @@ class ExperimentConfig:
     # Set random seed. Set to None to create new Seed
     random_seed: int = 42
 
-    # TODO: (canceliation) Cross Validation Split
-    # cv_split: int = 3
-
     # Training Related
-    num_epochs: int = 20
-    batch_size: int = 10
+    num_epochs: int = 50
+    batch_size: int = 32
     dataloader_num_worker: int = 4
-    # learning_rate: float = 0.001
-    # momentum_val: float = 0.9
-    # weight_decay_val: float = 5e-4
     patience: int = 2 # Early Stopping
 
     # Default Cross Entropy loss
     loss_function: nn.Module = nn.CrossEntropyLoss()
 
-    # Default Don't Select Model
-    # model: Optional[Type[nn.Module]] = None
-    # model_args: Dict[str, Any] = field(default_factory=dict)
 
     # current time
     # cur_time: str = field(default_factory=dfac_cur_time)
@@ -106,10 +104,11 @@ class ExperimentConfig:
 
     # Default model save root
     checkpoint_root: str = safe_dir(
-        f"/home/oscarchencs10/{project_name}/{project_name + '_Code'}/model_saved/{cur_time}")
+        f"/home/oscarchencs10/video_streaming/HW1/model_saved/{cur_time}")
 
     # Default Select Adam as Optimizer
-    optimizer: Type[torch.optim.Optimizer] = torch.optim.SGD  # type: ignore
+    optimizer: Type[torch.optim.Optimizer] = torch.optim.SGD
+    # optimizer: Type[torch.optim.Optimizer] = torch.optim.Adam
     optimizer_args: Dict[str, Any] = field(default_factory=dfac_dataset_optimizer_args)
 
     # Default adjust learning rate
@@ -117,11 +116,12 @@ class ExperimentConfig:
     lr_scheduler_args: Dict[str, Any] = field(default_factory=dfac_lr_scheduler_args)
 
     # Transform
-    train_data_transform = [transforms.Resize((224, 224)), transforms.ToTensor()]
-    test_data_transform = [transforms.Resize((224, 224)), transforms.ToTensor()]
+    train_data_transform = [transforms.Resize(224), transforms.ToTensor()]
+    val_data_transform = [transforms.Resize(224), transforms.ToTensor()]
+    test_data_transform = [transforms.Resize(224), transforms.ToTensor()]
 
     # Log data store
-    log_data_dir: str = f'/home/oscarchencs10/{project_name}/{project_name + "_Code"}/log/logging/{cur_time}_VS.log'
+    log_data_dir: str = f'/home/oscarchencs10/video_streaming/HW1/log/logging/{cur_time}_VS.log'
 
     def to_dict(self, expand: bool = True):
         return transform_dict(asdict(self), expand)

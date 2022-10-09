@@ -49,6 +49,13 @@ class ImageLoader(Dataset):
                 # ]
                 self.config.train_data_transform
             ),
+            "val": transforms.Compose(
+                # [
+                #     transforms.Resize((224, 224)),
+                #     transforms.ToTensor(),
+                # ]
+                self.config.val_data_transform
+            ),
             "test": transforms.Compose(
                 # [
                 #     transforms.Resize((224, 224)),

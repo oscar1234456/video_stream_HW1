@@ -6,6 +6,7 @@
 import logging
 import pprint
 
+import matplotlib.pyplot as plt
 import numpy as np
 import wandb
 
@@ -47,9 +48,9 @@ logger.info("Experiment Config\n%s", pprint.pformat(config.to_dict()))
 logger.info(f"PyTorch Version: {torch.__version__}")
 logger.info(f"Torchvision Version: {torchvision.__version__}")
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+device = torch.device(f'cuda:{config.gpu_device_id}') if torch.cuda.is_available() else torch.device('cpu')
 logger.info("Using {} device".format(device))
-
 
 # Init wandb
 wandb.init(
@@ -75,8 +76,34 @@ train_data = ImageLoader(config.db_path, 'train', config)
 val_data = ImageLoader(config.db_path, "val", config)
 trainLoader = DataLoader(train_data, batch_size=config.batch_size, shuffle=True,
                          num_workers=config.dataloader_num_worker, pin_memory=True)
-valLoader = DataLoader(val_data, batch_size=config.batch_size, shuffle=True,
+# trainLoader = DataLoader(train_data, batch_size=config.batch_size, shuffle=True)
+# valLoader = DataLoader(val_data, batch_size=config.batch_size, shuffle=False)
+valLoader = DataLoader(val_data, batch_size=config.batch_size, shuffle=False,
                        num_workers=config.dataloader_num_worker, pin_memory=True)
+
+for X, y in trainLoader:
+    print("Shape of X [N, C, H, W]: ", X.shape)
+    print("Shape of y: ", y.shape, y.dtype)
+    print(f"y:{y}")
+    break
+
+# examples = enumerate(trainLoader)
+# batch_idx, (example_data, example_label) = next(examples)
+# # 批量展示图片
+# for i in range(4):
+#     plt.subplot(1, 4, i + 1)
+#     plt.tight_layout()  #自动调整子图参数，使之填充整个图像区域
+#     img = example_data[i]
+#     img = img.numpy() # FloatTensor转为ndarray
+#     img = np.transpose(img, (1,2,0)) # 把channel那一维放到最后
+#     img = img * [0.5, 0.5, 0.5] + [0.5, 0.5, 0.5]
+#     #img = img * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406]
+#     plt.imshow(img)
+#     plt.title("label:{}".format(example_label[i]))
+#     plt.xticks([])
+#     plt.yticks([])
+# plt.show()
+
 
 logger.info(f"train_data size: {len(trainLoader.dataset)}")
 logger.info(f"val_data size: {len(valLoader.dataset)}")
@@ -90,14 +117,32 @@ optimizer_ft = config.optimizer(params=params_to_update, **config.optimizer_args
 criterion = config.loss_function
 
 # Training
-model_ft, train_hist, test_hist = train_model(model_ft, dataloaders_dict, criterion, optimizer_ft,
-                                              scheduler=None,
-                                              num_epochs=config.num_epochs, device=device, writer=writer,
-                                              patience=config.patience)
+model_ft, train_acc_hist, val_acc_hist, train_loss_hist, val_loss_hist = train_model(model_ft, dataloaders_dict,
+                                                                                     criterion, optimizer_ft,
+                                                                                     scheduler=None,
+                                                                                     num_epochs=config.num_epochs,
+                                                                                     device=device, writer=writer,
+                                                                                     patience=config.patience)
+
+# Print curve
+plt.subplot(2, 1, 1)
+plt.plot(train_loss_hist ,color="blue",  label="Train")
+plt.plot(val_loss_hist, color="orange",  label="Validation")
+plt.xticks([_ for _ in range(config.num_epochs)])
+plt.legend(loc="best")
+plt.title('Loss')
+plt.subplot(2, 1, 2)
+plt.plot(train_acc_hist, color="blue",  label="Train")
+plt.plot(val_acc_hist, color="orange",  label="Validation")
+plt.xticks([_ for _ in range(config.num_epochs)])
+plt.legend(loc="best")
+plt.title('Accuracy')
+plt.show()
+
 # model_ft is the best one
 # Validation
-score_dict = evaluate_model(model=model_ft, validation_dataloader=dataloaders_dict["val"], criterion=criterion,
-                            device=device, writer=writer)
+# score_dict = evaluate_model(model=model_ft, validation_dataloader=dataloaders_dict["val"], criterion=criterion,
+#                             device=device, writer=writer)
 # score -> {"Final_Val_Loss", "Final_Val_Acc"}
 
 #
@@ -110,11 +155,11 @@ score_dict = evaluate_model(model=model_ft, validation_dataloader=dataloaders_di
 # with open('resnet18_Testing.pickle', 'wb') as f:
 #     pickle.dump(test_hist, f)
 
-logger.info("====================================")
-logger.info("OverAll Performance[Validation]:")
-logger.info(f"Loss: {score_dict['Final_Val_Loss']}")
-logger.info(f"Acc: {score_dict['Final_Val_Acc']}")
-logger.info("====================================")
+# logger.info("====================================")
+# logger.info("OverAll Performance[Validation]:")
+# logger.info(f"Loss: {score_dict['Final_Val_Loss']}")
+# logger.info(f"Acc: {score_dict['Final_Val_Acc']}")
+# logger.info("====================================")
 
 print()
 print("main dead")
