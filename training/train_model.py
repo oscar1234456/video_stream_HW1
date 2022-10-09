@@ -156,6 +156,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs,
     time_elapsed = time.time() - since  # time end
     logger.info('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
     logger.info(f'Best val acc (in epoch {best_acc_epoch}): {best_acc:4f}')
+    wandb.log({"Best val acc": best_acc})
+    wandb.log({"Best val acc epoch": best_acc_epoch})
 
     model.load_state_dict(best_model_weight)
     return model, train_acc_history, val_acc_history, train_loss_history, val_loss_history

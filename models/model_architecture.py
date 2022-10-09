@@ -75,13 +75,13 @@ class VGGNet_19(nn.Module):
         )
         self.flatten = nn.Flatten()
         self.linear = torch.nn.Sequential(
-            torch.nn.Linear(in_features=512*7*7, out_features=4096),
+            torch.nn.Linear(in_features=512*7*7, out_features=300),
             torch.nn.ReLU(inplace=True),
-            # torch.nn.Dropout(p=0.5),
-            torch.nn.Linear(in_features=4096, out_features=4096),
+            torch.nn.Dropout(p=0.6),
+            torch.nn.Linear(in_features=300, out_features=100),
             torch.nn.ReLU(inplace=True),
-            # torch.nn.Dropout(p=0.5),
-            torch.nn.Linear(in_features=4096, out_features=10)
+            torch.nn.Dropout(p=0.6),
+            torch.nn.Linear(in_features=100, out_features=10)
         )
 
     def forward(self, x):

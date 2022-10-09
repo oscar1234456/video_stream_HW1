@@ -40,7 +40,7 @@ def transform_dict(config_dict: Dict, expand: bool = True):
 def dfac_dataset_optimizer_args():
     # SGD
     return {
-        "lr": 0.0001,
+        "lr": 0.0003,
         "momentum": 0.9,
         "weight_decay": 5e-4,
     }
@@ -89,7 +89,7 @@ class ExperimentConfig:
     random_seed: int = 42
 
     # Training Related
-    num_epochs: int = 50
+    num_epochs: int = 100
     batch_size: int = 32
     dataloader_num_worker: int = 4
     patience: int = 2 # Early Stopping
@@ -116,7 +116,7 @@ class ExperimentConfig:
     lr_scheduler_args: Dict[str, Any] = field(default_factory=dfac_lr_scheduler_args)
 
     # Transform
-    train_data_transform = [transforms.Resize(224), transforms.ToTensor()]
+    train_data_transform = [transforms.Resize(224), transforms.RandomVerticalFlip(), transforms.ToTensor()]
     val_data_transform = [transforms.Resize(224), transforms.ToTensor()]
     test_data_transform = [transforms.Resize(224), transforms.ToTensor()]
 
