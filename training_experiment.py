@@ -7,30 +7,23 @@ import logging
 import pprint
 
 import matplotlib.pyplot as plt
-import numpy as np
 import wandb
 
 import torch
 import torchvision
-from sklearn.model_selection import KFold, StratifiedKFold
 from torch.backends import cudnn
 from torch.utils.data import DataLoader
-# import time
-# import copy
 from torch.utils.tensorboard import SummaryWriter
 
 from ImageLoader import ImageLoader
-# import pickle
 from evaluate.evaluate_model import evaluate_model
 
 from experiment.config import ExperimentConfig
 
 # load Hyperparameter setting
 from models.model_architecture import VGGNet_19
-from models.model_prepare import initialize_model
 from training.train_model import train_model
 from util.logger import setup_logging
-import pandas as pd
 
 wandb.tensorboard.patch(pytorch=True)
 config = ExperimentConfig()
@@ -69,9 +62,14 @@ model_ft = VGGNet_19()
 model_ft = model_ft.to(device)
 wandb.watch(model_ft)
 logger.info(model_ft)
+logger.info(f"number of params: {sum(p.numel() for p in model_ft.parameters() if p.requires_grad)}")
 
 ## DataLoader
 print("Initializing Datasets and Dataloaders...")
+
+logger.info(f"Train Transform: {config.train_data_transform}")
+logger.info(f"Validation Transform: {config.val_data_transform}")
+
 train_data = ImageLoader(config.db_path, 'train', config)
 val_data = ImageLoader(config.db_path, "val", config)
 trainLoader = DataLoader(train_data, batch_size=config.batch_size, shuffle=True,
@@ -128,28 +126,29 @@ model_ft, train_acc_hist, val_acc_hist, train_loss_hist, val_loss_hist = train_m
 plt.subplot(2, 1, 1)
 plt.plot(train_loss_hist ,color="blue",  label="Train")
 plt.plot(val_loss_hist, color="orange",  label="Validation")
-plt.xticks([_ for _ in range(config.num_epochs)])
+plt.xticks([_ for _ in range(len(train_loss_hist))])
 plt.legend(loc="best")
 plt.title('Loss')
 plt.subplot(2, 1, 2)
 plt.plot(train_acc_hist, color="blue",  label="Train")
 plt.plot(val_acc_hist, color="orange",  label="Validation")
-plt.xticks([_ for _ in range(config.num_epochs)])
+plt.xticks([_ for _ in range(len(train_acc_hist))])
 plt.legend(loc="best")
 plt.title('Accuracy')
 plt.show()
 
 # model_ft is the best one
 # Validation
-# score_dict = evaluate_model(model=model_ft, validation_dataloader=dataloaders_dict["val"], criterion=criterion,
-#                             device=device, writer=writer)
+score_dict = evaluate_model(model=model_ft, validation_dataloader=dataloaders_dict["val"], criterion=criterion,
+                            device=device, writer=writer)
 # score -> {"Final_Val_Loss", "Final_Val_Acc"}
 
 #
-# ## Save Best model
-# torch.save(model_ft.state_dict(), 'resnet18_weight1.pth')
+## Save Best model
+torch.save(model_ft.state_dict(), f"{config.checkpoint_root}/{config.cur_time}_VS.pth")
+logger.info(f"Best Model Weight Saved in Folder: {config.checkpoint_root}/{config.cur_time}_VS.pth")
 #
-# ##Save Training & Testing Accuracy Result
+# ##Save Training & Testing Accuracy Resul
 # with open('resnet18_Training.pickle', 'wb') as f:
 #     pickle.dump(train_hist, f)
 # with open('resnet18_Testing.pickle', 'wb') as f:

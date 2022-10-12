@@ -40,7 +40,7 @@ def transform_dict(config_dict: Dict, expand: bool = True):
 def dfac_dataset_optimizer_args():
     # SGD
     return {
-        "lr": 0.0003,
+        "lr": 0.0005,
         "momentum": 0.9,
         "weight_decay": 5e-4,
     }
@@ -72,7 +72,7 @@ class ExperimentConfig:
     db_path: str = "/mnt/2ndHDD/oscarchencs10/video_streaming/"
 
     # GPU Device Setting
-    gpu_device_id: str = "1"
+    gpu_device_id: str = "0"
 
     # tensorboard setting
     tensorboard_log_root: str = safe_dir(f"/home/oscarchencs10/video_streaming/HW1/log/tensorboard")
@@ -89,7 +89,7 @@ class ExperimentConfig:
     random_seed: int = 42
 
     # Training Related
-    num_epochs: int = 100
+    num_epochs: int = 70
     batch_size: int = 32
     dataloader_num_worker: int = 4
     patience: int = 2 # Early Stopping
@@ -116,9 +116,9 @@ class ExperimentConfig:
     lr_scheduler_args: Dict[str, Any] = field(default_factory=dfac_lr_scheduler_args)
 
     # Transform
-    train_data_transform = [transforms.Resize(224), transforms.RandomVerticalFlip(), transforms.ToTensor()]
+    train_data_transform = [transforms.Resize(224), transforms.ToTensor()]
     val_data_transform = [transforms.Resize(224), transforms.ToTensor()]
-    test_data_transform = [transforms.Resize(224), transforms.ToTensor()]
+    # test_data_transform = [transforms.Resize(224), transforms.ToTensor()]
 
     # Log data store
     log_data_dir: str = f'/home/oscarchencs10/video_streaming/HW1/log/logging/{cur_time}_VS.log'

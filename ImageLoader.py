@@ -21,7 +21,10 @@ logger = logging.getLogger(__name__)
 class ImageLoader(Dataset):
     def __init__(self, root, mode, config):
         self.root = root
-        self.img_name, self.label = getData(mode)
+        if mode=="test":
+            self.img_name = getData(mode)
+        else:
+            self.img_name, self.label = getData(mode)
         self.mode = mode
         self.config = config
         logger.info(f">Found {len(self.img_name)} images ({mode})...")
@@ -30,45 +33,55 @@ class ImageLoader(Dataset):
         return len(self.img_name)
 
     def __getitem__(self, index):
-        data_transform = {
-            "train": transforms.Compose(
-                # [
-                #     # Try Different Transform
-                #     # transforms.RandomRotation(degrees=(0,360)),  #first priority
-                #     # transforms.RandomResizedCrop(224),
-                #     # transforms.Resize(260),
-                #     # transforms.CenterCrop(224),
-                #     # transforms.RandomHorizontalFlip(),
-                #     # tra
-                #     nsforms.ToTensor(),  # range [0, 255] -> [0.0,1.0]
-                #     # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                #     # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-                #     # transforms.Normalize([0.4693, 0.3225, 0.2287], [0.1974, 0.1399, 0.1014])
-                #     # transforms.Resize((224, 224)),
-                #     # transforms.ToTensor(),  # range [0, 255] -> [0.0,1.0]
-                # ]
-                self.config.train_data_transform
-            ),
-            "val": transforms.Compose(
-                # [
-                #     transforms.Resize((224, 224)),
-                #     transforms.ToTensor(),
-                # ]
-                self.config.val_data_transform
-            ),
-            "test": transforms.Compose(
-                # [
-                #     transforms.Resize((224, 224)),
-                #     transforms.ToTensor(),
-                # ]
-                self.config.test_data_transform
-            ),
-        }
-        img_path = self.root + self.mode+ "/" +self.img_name[index]
+        if self.mode == "test":
+            data_transform = {
+                "test": transforms.Compose(
+                    [
+                        transforms.Resize(224),
+                        transforms.ToTensor()
+                    ]
+                    # self.config.test_data_transform
+                ),
+            }
+        else:
+            data_transform = {
+                "train": transforms.Compose(
+                    # [
+                    #     # Try Different Transform
+                    #     # transforms.RandomRotation(degrees=(0,360)),  #first priority
+                    #     # transforms.RandomResizedCrop(224),
+                    #     # transforms.Resize(260),
+                    #     # transforms.CenterCrop(224),
+                    #     # transforms.RandomHorizontalFlip(),
+                    #     # tra
+                    #     nsforms.ToTensor(),  # range [0, 255] -> [0.0,1.0]
+                    #     # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                    #     # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+                    #     # transforms.Normalize([0.4693, 0.3225, 0.2287], [0.1974, 0.1399, 0.1014])
+                    #     # transforms.Resize((224, 224)),
+                    #     # transforms.ToTensor(),  # range [0, 255] -> [0.0,1.0]
+                    # ]
+                    self.config.train_data_transform
+                ),
+                "val": transforms.Compose(
+                    # [
+                    #     transforms.Resize((224, 224)),
+                    #     transforms.ToTensor(),
+                    # ]
+                    self.config.val_data_transform
+                )
+            }
+        if self.mode == "test":
+            img_path = self.root + "/" + self.img_name[index]
+        else:
+            img_path = self.root + self.mode + "/" + self.img_name[index]
         image = Image.open(img_path).convert('RGB')
-        label = self.label[index]
         imageConvert = data_transform[self.mode](image)
-        return imageConvert, label
+        if self.mode == "test":
+            return imageConvert
+        else:
+            label = self.label[index]
+            return imageConvert, label
 
 
 def getData(mode):
@@ -78,14 +91,18 @@ def getData(mode):
         print(train_list)
         img = train_list["names"]
         label = train_list["label"]
-    else:
+        return np.squeeze(img.values), np.squeeze(label.values)
+    elif mode == "val":
         val_list = pd.read_csv("/mnt/2ndHDD/oscarchencs10/video_streaming/val.csv")
         img = val_list["names"]
         label = val_list["label"]
-
-    #TODO: add testing dataset loader
-
-    return np.squeeze(img.values), np.squeeze(label.values)
+        return np.squeeze(img.values), np.squeeze(label.values)
+    else:
+        test_list = pd.read_csv("./data_files/test_file.csv")
+        print("test_list:")
+        print(test_list)
+        img = test_list["names"]
+        return np.squeeze(img.values)
 
 
 # For Imbalanced Data Approach Testing(Count Weight with each class):

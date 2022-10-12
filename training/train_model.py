@@ -136,17 +136,17 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs,
             pretty_stream(dataloader)
 
         # Early stopping
-        # if phase == "val" and epoch_loss > the_last_val_loss:
-        #     trigger_times += 1
-        #     logger.info(f"[Notice] trigger add, now: {trigger_times}")
-        #     if trigger_times >= patience:
-        #         logger.info(f"[Notice] Early Stopping in epoch:{epoch}! (over patience: {patience})")
-        #         break
-        #     else:
-        #         the_last_val_loss = epoch_loss
-        # elif phase == "val":
-        #     trigger_times = 0
-        #     the_last_val_loss = epoch_loss
+        if phase == "val" and epoch_loss > the_last_val_loss:
+            trigger_times += 1
+            logger.info(f"[Notice] trigger add, now: {trigger_times}")
+            if trigger_times >= patience:
+                logger.info(f"[Notice] Early Stopping in epoch:{epoch}! (over patience: {patience})")
+                break
+            else:
+                the_last_val_loss = epoch_loss
+        elif phase == "val":
+            trigger_times = 0
+            the_last_val_loss = epoch_loss
 
         # print()
         # scheduler.step(epoch_acc) # use for adaptive learning rate control (Experiment Phase)
